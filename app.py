@@ -9,7 +9,7 @@ from mcp_server import mcp
 
 st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖", layout="centered")
 
-st.title("🤖 EY Nottingham Spirk Touchpoint v2.0")
+st.title("🤖 EY Nottingham Spirk Touchpoint v2.1")
 st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
 # Initialize Chat History
