@@ -12,7 +12,7 @@ st.caption("Tell me a bit about yourself to enter the live dashboard!")
 # Initialize Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Hi there! Welcome to the event. What's your name, age, and favorite technology?"}
+        {"role": "assistant", "content": "What's your name, age, and favorite technology?"}
     ]
 
 # Display Messages
@@ -53,9 +53,9 @@ if user_prompt := st.chat_input("Type your response here..."):
                                 tool_call["name"], 
                                 tool_call["args"]
                             )
-                            st.write(f"✅ *Saved data to database: {tool_call['args']}*")
+                            st.write(f"✅ *Saved touchpoint: {tool_call['args']}*")
                             
-                        final_reply = "Got it! Your information has been saved to the live display database."
+                        final_reply = "Got it! Your information has been saved to the leaderboard."
                     else:
                         final_reply = response.content
 
