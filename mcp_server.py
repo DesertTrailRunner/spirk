@@ -1,15 +1,20 @@
 # mcp_server.py
 import os
 import streamlit as st
+from fastmcp import FastMCP
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from langchain_core.tools import tool
 
 load_dotenv()
 
+mcp = FastMCP("survey-server")
+
 def get_secret(key_name: str) -> str:
-    if hasattr(st, "secrets") and key_name in st.secrets:
-        return st.secrets[key_name]
+    try:
+        if key_name in st.secrets:
+            return st.secrets[key_name]
+    except Exception:
+        pass
     return os.getenv(key_name, "")
 
 supabase_url = get_secret("SUPABASE_URL")
@@ -24,7 +29,7 @@ try:
 except Exception as e:
     supabase = None
 
-@tool
+@mcp.tool
 def save_teen_survey(name: str, age: int, favorite_tech: str) -> str:
     """Saves a teenager's survey responses into the Supabase database.
     
