@@ -1,48 +1,74 @@
-# mcp_server.py
-import os
 import streamlit as st
-from dotenv import load_dotenv
-from supabase import create_client, Client
-from langchain_core.tools import tool
+import asyncio
+from fastmcp import Client
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
-load_dotenv()
+# IMPORT THE IN-MEMORY MCP INSTANCE
+from mcp_server import mcp
 
-def get_secret(key_name: str) -> str:
-    if hasattr(st, "secrets") and key_name in st.secrets:
-        return st.secrets[key_name]
-    return os.getenv(key_name, "")
+st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖", layout="centered")
 
-supabase_url = get_secret("SUPABASE_URL")
-supabase_key = get_secret("SUPABASE_SERVICE_ROLE_KEY")
+st.title("🤖 EY Nottingham Spirk Touchpoint v2.2")
+st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
-if not supabase_url or not supabase_key:
-    # Safe error context for app initialization
-    st.error("⚠️ Database connection parameters are missing. Please check your secrets configuration.")
+# Initialize Chat History
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "What's your name, age, and favorite technology?"}
+    ]
 
-try:
-    supabase: Client = create_client(supabase_url, supabase_key)
-except Exception as e:
-    supabase = None
+# Display Messages
+for msg in st.session_state.messages:
+    st.chat_message(msg["role"]).write(msg["content"])
 
-@tool
-def save_teen_survey(name: str, age: int, favorite_tech: str) -> str:
-    """Saves a teenager's survey responses into the Supabase database.
-    
-    Args:
-        name: Name or nickname of the teenager.
-        age: Age of the teenager in years.
-        favorite_tech: What technology/app they like the most.
-    """
-    if not supabase:
-        return "ERROR: Database client is not connected."
+# User Input
+if user_prompt := st.chat_input("Type your response here..."):
+    st.session_state.messages.append({"role": "user", "content": user_prompt})
+    st.chat_message("user").write(user_prompt)
 
+    # Process with LLM & MCP Tool
     try:
-        data = supabase.table("surveys").insert({
-            "name": name,
-            "age": int(age),
-            "favorite_tech": favorite_tech
-        }).execute()
-        return f"SUCCESS: Saved response for {name}!"
+        with st.chat_message("assistant"):
+            with st.spinner("Processing..."):
+                # Setup FastMCP Client connected to mcp_server.py
+                async def process_mcp():
+                    # PASS THE IMPORTED OBJECT DIRECTLY
+                    async with Client(mcp) as client:
+                        tools = await client.get_tools()
+                        
+                        # Pass tools to OpenAI model
+                        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7).bind_tools(tools)
+                        
+                        # Convert history to LangChain messages
+                        lc_messages = []
+                        for m in st.session_state.messages:
+                            if m["role"] == "user":
+                                lc_messages.append(HumanMessage(content=m["content"]))
+                            else:
+                                lc_messages.append(AIMessage(content=m["content"]))
+
+                        response = await llm.ainvoke(lc_messages)
+
+                        # Check if the model wants to call the MCP tool
+                        if response.tool_calls:
+                            for tool_call in response.tool_calls:
+                                # Call the MCP server function
+                                tool_result = await client.call_tool(
+                                    tool_call["name"], 
+                                    tool_call["args"]
+                                )
+                                st.write(f"✅ *Saved touchpoint: {tool_call['args']}*")
+                                
+                            final_reply = "Got it! Your information has been saved to the leaderboard."
+                        else:
+                            final_reply = response.content
+
+                        return final_reply
+
+                # Run async execution inside Streamlit
+                final_response = asyncio.run(process_mcp())
+                st.write(final_response)
+                st.session_state.messages.append({"role": "assistant", "content": final_response})
     except Exception as e:
-        # Catch network timeouts, invalid schema types, or permission errors
-        return f"ERROR: Could not complete save operation - {str(e)}"
+        st.write(f"ERROR: Could not complete save operation - {str(e)}")
