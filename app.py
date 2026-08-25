@@ -1,74 +1,68 @@
+# app.py
+import os
 import streamlit as st
-import asyncio
-from fastmcp import Client
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langchain_core.messages import HumanMessage, AIMessage
 
-# IMPORT THE IN-MEMORY MCP INSTANCE
-from mcp_server import mcp
+# Import tool function directly
+from mcp_server import save_teen_survey
 
-st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖", layout="centered")
-
-st.title("🤖 EY Nottingham Spirk Touchpoint v2.2")
+st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖")
+st.title("🤖 EY Nottingham-Spirk Touchpoint v2.2")
 st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
-# Initialize Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "What's your name, age, and favorite technology?"}
+        {"role": "assistant", "content": "Hi there! Welcome to the event. What's your name, age, and favorite technology?"}
     ]
 
-# Display Messages
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
-# User Input
 if user_prompt := st.chat_input("Type your response here..."):
     st.session_state.messages.append({"role": "user", "content": user_prompt})
     st.chat_message("user").write(user_prompt)
 
-    # Process with LLM & MCP Tool
-    try:
-        with st.chat_message("assistant"):
-            with st.spinner("Processing..."):
-                # Setup FastMCP Client connected to mcp_server.py
-                async def process_mcp():
-                    # PASS THE IMPORTED OBJECT DIRECTLY
-                    async with Client(mcp) as client:
-                        tools = await client.get_tools()
-                        
-                        # Pass tools to OpenAI model
-                        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7).bind_tools(tools)
-                        
-                        # Convert history to LangChain messages
-                        lc_messages = []
-                        for m in st.session_state.messages:
-                            if m["role"] == "user":
-                                lc_messages.append(HumanMessage(content=m["content"]))
+    with st.chat_message("assistant"):
+        with st.spinner("Processing..."):
+            try:
+                api_key = st.secrets.get("OPENAI_API_KEY") if hasattr(st, "secrets") and "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    st.error("🔑 OpenAI API key missing. Please check your configuration.")
+                    st.stop()
+
+                # Pass the tool function directly in a list
+                llm = ChatOpenAI(
+                    model="gpt-4o-mini", 
+                    temperature=0.7, 
+                    api_key=api_key
+                ).bind_tools([save_teen_survey])
+
+                lc_messages = [
+                    HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"])
+                    for m in st.session_state.messages
+                ]
+
+                response = llm.invoke(lc_messages)
+
+                if response.tool_calls:
+                    for tool_call in response.tool_calls:
+                        if tool_call["name"] == "save_teen_survey":
+                            # Invoke the tool synchronously
+                            result = save_teen_survey.invoke(tool_call["args"])
+                            
+                            if "ERROR:" in result:
+                                st.warning("⚠️ Couldn't save your details right now. Please check your details and try again.")
+                                final_reply = "I had trouble saving your information to the database, but feel free to keep chatting!"
                             else:
-                                lc_messages.append(AIMessage(content=m["content"]))
+                                st.success("🎉 Your details have been submitted!")
+                                final_reply = "Your responses have been safely saved to the live dashboard!"
+                else:
+                    final_reply = response.content
 
-                        response = await llm.ainvoke(lc_messages)
+                st.write(final_reply)
+                st.session_state.messages.append({"role": "assistant", "content": final_reply})
 
-                        # Check if the model wants to call the MCP tool
-                        if response.tool_calls:
-                            for tool_call in response.tool_calls:
-                                # Call the MCP server function
-                                tool_result = await client.call_tool(
-                                    tool_call["name"], 
-                                    tool_call["args"]
-                                )
-                                st.write(f"✅ *Saved touchpoint: {tool_call['args']}*")
-                                
-                            final_reply = "Got it! Your information has been saved to the leaderboard."
-                        else:
-                            final_reply = response.content
-
-                        return final_reply
-
-                # Run async execution inside Streamlit
-                final_response = asyncio.run(process_mcp())
-                st.write(final_response)
-                st.session_state.messages.append({"role": "assistant", "content": final_response})
-    except Exception as e:
-        st.write(f"ERROR: Could not complete save operation - {str(e)}")
+            except Exception as err:
+                st.error("Oops! Something went wrong on our end. Please try again.")
+                print(f"Unhandled Exception: {err}")

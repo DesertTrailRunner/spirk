@@ -4,10 +4,11 @@ import streamlit as st
 from fastmcp import FastMCP
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from langchain_core.tools import tool
 
 load_dotenv()
 
-mcp = FastMCP("survey-server")
+# mcp = FastMCP("survey-server")
 
 def get_secret(key_name: str) -> str:
     try:
@@ -29,7 +30,7 @@ try:
 except Exception as e:
     supabase = None
 
-@mcp.tool
+@tool
 def save_teen_survey(name: str, age: int, favorite_tech: str) -> str:
     """Saves a teenager's survey responses into the Supabase database.
     
