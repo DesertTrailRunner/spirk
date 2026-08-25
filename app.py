@@ -4,6 +4,9 @@ from fastmcp import Client
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
+# IMPORT THE IN-MEMORY MCP INSTANCE
+from mcp_server import mcp
+
 st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖", layout="centered")
 
 st.title("🤖 EY Nottingham Spirk Touchpoint v2.0")
@@ -29,7 +32,8 @@ if user_prompt := st.chat_input("Type your response here..."):
         with st.spinner("Processing..."):
             # Setup FastMCP Client connected to mcp_server.py
             async def process_mcp():
-                async with Client("mcp_server.py") as client:
+                # PASS THE IMPORTED OBJECT DIRECTLY
+                async with Client(mcp) as client:
                     tools = await client.get_tools()
                     
                     # Pass tools to OpenAI model
