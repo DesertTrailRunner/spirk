@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
 st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖", layout="centered")
 
-st.title("🤖 Workshop Assistant")
+st.title("🤖 EY Nottingham Spirk Touchpoint")
 st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
 # Initialize Chat History
