@@ -1,5 +1,5 @@
 # Agent web app
-# 2026-08-26
+# 2026-08-28
 
 import os
 import streamlit as st
@@ -7,9 +7,9 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Import tool function directly
-from mcp_server import save_teen_survey
+from mcp_server import save_agent_data
 
-st.set_page_config(page_title="Tech Workshop Assistant", page_icon="🤖")
+st.set_page_config(page_title="EY Nottingham Spirk Tech Workshop Agent", page_icon="🤖")
 st.title("🤖 EY Nottingham-Spirk Touchpoint v2.2")
 st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
@@ -38,7 +38,7 @@ if user_prompt := st.chat_input("Type your response here..."):
                     model="gpt-4o-mini", 
                     temperature=0.7, 
                     api_key=api_key
-                ).bind_tools([save_teen_survey])
+                ).bind_tools([save_agent_data])
 
                 lc_messages = [
                     HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"])
@@ -49,9 +49,9 @@ if user_prompt := st.chat_input("Type your response here..."):
 
                 if response.tool_calls:
                     for tool_call in response.tool_calls:
-                        if tool_call["name"] == "save_teen_survey":
+                        if tool_call["name"] == "save_agent_data":
                             # Invoke the tool synchronously
-                            result = save_teen_survey.invoke(tool_call["args"])
+                            result = save_agent_data.invoke(tool_call["args"])
                             
                             if "ERROR:" in result:
                                 st.warning("⚠️ Couldn't save your details right now. Please check your details and try again.")

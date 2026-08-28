@@ -1,6 +1,6 @@
 # mcp_server.py
 # MCP server
-# 2026-08-26
+# 2026-08-28
 import os
 import streamlit as st
 from fastmcp import FastMCP
@@ -33,7 +33,7 @@ except Exception as e:
     supabase = None
 
 @tool
-def save_teen_survey(name: str, age: int, favorite_tech: str) -> str:
+def save_agent_data(name: str, age: int, favorite_tech: str) -> str:
     """Saves a teenager's survey responses into the Supabase database.
     
     Args:
