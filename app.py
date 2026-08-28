@@ -3,7 +3,8 @@
 
 import os
 import streamlit as st
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_openrouter import ChatOpenRouter
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Import tool function directly
@@ -30,13 +31,13 @@ if user_prompt := st.chat_input("Type your response here..."):
     with st.chat_message("assistant"):
         with st.spinner("Processing..."):
             try:
-                api_key = st.secrets.get("OPENAI_API_KEY") if hasattr(st, "secrets") and "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+                api_key = st.secrets.get("OPENROUTER_API_KEY") if hasattr(st, "secrets") and "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
                 if not api_key:
-                    st.error("🔑 OpenAI API key missing. Please check your configuration.")
+                    st.error("🔑 OpenRouter API key missing. Please check your configuration.")
                     st.stop()
 
                 # Pass the tool function directly in a list
-                llm = ChatOpenAI(
+                llm = ChatOpenRouter(
                     model="gpt-4o-mini", 
                     temperature=0.7, 
                     api_key=api_key
