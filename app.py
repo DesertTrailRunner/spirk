@@ -13,6 +13,8 @@ st.set_page_config(page_title="EY Nottingham Spirk Tech Workshop Agent", page_ic
 st.title("🤖 EY Nottingham-Spirk Touchpoint v2.2")
 st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
+print("Starting EY Nottingham-Spirk Touchpoint Agent...")
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": "Hi there! Welcome to the event. What's your name, age, and favorite technology?"}
