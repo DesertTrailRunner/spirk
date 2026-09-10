@@ -32,12 +32,12 @@ except Exception as e:
     supabase = None
 
 @tool
-def save_agent_data(name: str, age: int, favorite_tech: str) -> str:
-    """Saves a teenager's survey responses into the Supabase database.
+def save_agent_data(name: str, school: str, favorite_tech: str) -> str:
+    """Saves a user's survey responses into the Supabase database.
     
     Args:
-        name: Name or nickname of the teenager.
-        age: Age of the teenager in years.
+        name: Name or nickname of the user.
+        school: School the user attends.
         favorite_tech: What technology/app they like the most.
     """
     if not supabase:
@@ -46,7 +46,7 @@ def save_agent_data(name: str, age: int, favorite_tech: str) -> str:
     try:
         data = supabase.table("surveys").insert({
             "name": name,
-            "age": int(age),
+            "school": school,
             "favorite_tech": favorite_tech
         }).execute()
         return f"SUCCESS: Saved response for {name}!"
