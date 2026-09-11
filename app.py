@@ -10,8 +10,8 @@ from langchain_core.messages import HumanMessage, AIMessage
 # Import tool function directly
 from mcp_server import save_agent_data
 
-st.set_page_config(page_title="EY Nottingham Spirk Tech Workshop Agent", page_icon="🤖")
-st.title("EY Nottingham-Spirk Touchpoint")
+st.set_page_config(page_title="EY Northeast Ohio Teens in Tech Workshop", page_icon="🤖")
+st.title("Touchpoint Agent")
 st.caption("Tell me a bit about yourself to enter the live dashboard!")
 
 # st.write("Starting EY Nottingham-Spirk Touchpoint Agent...")
