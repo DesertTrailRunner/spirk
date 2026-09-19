@@ -62,7 +62,7 @@ if user_prompt := st.chat_input("Type your response here..."):
                                 final_reply = "I had trouble saving your information to the database, but feel free to keep chatting!"
                             else:
                                 st.success("🎉 Your details have been submitted!")
-                                final_reply = "Your responses have been safely saved to the live dashboard!"
+                                final_reply = "Your responses have been safely saved to the leaderboard!"
                 else:
                     final_reply = response.content
 
