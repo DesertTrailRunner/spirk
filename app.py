@@ -11,10 +11,10 @@ from langchain_core.messages import HumanMessage, AIMessage
 from mcp_server import save_agent_data
 
 st.set_page_config(page_title="EY Northeast Ohio Teens in Tech Workshop", page_icon="🤖")
-st.title("EY NEO Teens in Tech:\nIntroduction Agent")
+st.title("EY NEO Teens in Tech")
 st.caption("Tell me a bit about yourself to be displayed on the leaderboard.")
 
-# st.write("Starting EY Nottingham-Spirk Touchpoint Agent...")
+st.write("Introduction Agent")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
