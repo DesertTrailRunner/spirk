@@ -1,5 +1,5 @@
 # Agent web app
-# 2026-09-10
+# 2026-09-21
 
 import os
 import streamlit as st
@@ -19,7 +19,7 @@ st.caption("Tell me a bit about yourself to be displayed on the leaderboard.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "What's your name, school, and favorite technology?"}
+        {"role": "assistant", "content": "What's your first name, school, and favorite technology?"}
     ]
 
 for msg in st.session_state.messages:
